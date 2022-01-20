@@ -1,0 +1,22 @@
+{
+  "name": "social-media",
+  "version": "1.0.0",
+  "description": "Social-Media Rest -API",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "Diptanshu Mandal",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^14.2.0",
+    "express": "^4.17.2",
+    "helmet": "^5.0.1",
+    "mongoose": "^6.1.7"
+  },
+  "devDependencies": {
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.15"
+  }
+}
