@@ -1,7 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
-const User = require('../models/User')
+const User = require('../models/User');
+const { Router } = require("express");
 
 // /api/users/
 
@@ -23,9 +24,10 @@ router.put('/:id' , async(req , res)=>{
         // updating user details to the database
         try {
             const user = await User.findByIdAndUpdate(req.params.id , {$set : req.body});
+            console.log(user);
             res.status(200).json("account updated");
         } catch (error) {
-            res.status(500).json("err")
+            res.status(500).json(error)
         }
     }else{
         res.status(403).json({error : "user data update failed"})
@@ -47,6 +49,17 @@ router.delete('/:id' , async(req , res)=>{
     }
 })
 //get a user
+router.get('/:id' , async(req , res)=>{
+
+        try{
+            const user = await User.findById(req.params.id);
+            const {password , updatedAt , ...other} = user._doc;
+            res.status(200).json(other);
+    
+        }catch(error){
+            res.status(500).json("err")
+        }
+})
 //follow a user
 //unfollow a user
 
