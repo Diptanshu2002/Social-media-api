@@ -9,7 +9,8 @@ const { Router } = require("express");
 router.get("/", (req ,res)=>{
     res.send("users")
 })
-//update user
+
+//update user-----------------------------------------------------------------------------------------------------------------
 router.put('/:id' , async(req , res)=>{
     if(req.body.userId === req.params.id || req.body.isAdmin){
         //if password reset request came then encrypt the new password with bcrypt
@@ -33,7 +34,8 @@ router.put('/:id' , async(req , res)=>{
         res.status(403).json({error : "user data update failed"})
     }
 })
-//delete user 
+
+//delete user---------------------------------------------------------------------------------------------------------------- 
 router.delete('/:id' , async(req , res)=>{
     if(req.body.userId === req.params.id || req.body.isAdmin){
         
@@ -48,11 +50,13 @@ router.delete('/:id' , async(req , res)=>{
         res.status(403).json({error : "user data deletion failed"})
     }
 })
-//get a user
+
+//get a user------------------------------------------------------------------------------------------------------------------
 router.get('/:id' , async(req , res)=>{
 
         try{
             const user = await User.findById(req.params.id);
+            console.log(user)
             const {password , updatedAt , ...other} = user._doc;
             res.status(200).json(other);
     
@@ -60,7 +64,8 @@ router.get('/:id' , async(req , res)=>{
             res.status(500).json("err")
         }
 })
-//follow a user
+
+//follow a user---------------------------------------------------------------------------------------------------------------
 router.put("/:id/follow", async (req,res)=>{
     if(req.body.userId !== req.params.id){
         try{
@@ -81,6 +86,29 @@ router.put("/:id/follow", async (req,res)=>{
         res.status(403).json("You cant follow yourself");
     }
 })
-//unfollow a user
+
+//unfollow a user---------------------------------------------------------------------------------------------------------------
+router.put("/:id/unfollow", async (req,res)=>{
+    if(req.body.userId !== req.params.id){
+        try{
+            const user = await User.findById(req.params.id);
+            const currentUser = await User.findById(req.body.userId);
+            if(user.followers.includes(currentUser.id)){
+                await user.updateOne({$pull : {followers : currentUser.id}});
+                await currentUser.updateOne({$pull : {followings : user.id}});
+                res.status(200).json("user has been unfollowed");
+            }else{
+                res.status(403).json("you donot follow the user")
+            }
+
+        }catch(error){
+            res.status(500).json(error);
+        }
+    }else{
+        res.status(403).json("You cant unfollow yourself");
+    }
+})
+
+
 
 module.exports = router;
