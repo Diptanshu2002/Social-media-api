@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 
 const userRoute = require("./routes/users");
 const authRoute = require("./routes/auth");
+const postRoute = require("./routes/posts");
 
 //DOT ENV configuration
 dotenv.config();
@@ -36,6 +37,7 @@ app.use(morgan("common"));
 // routes
 app.use("/api/users", userRoute);
 app.use("/api/auth", authRoute);
+app.use("/api/posts", postRoute);
 
 app.listen(PORT, () => {
   console.log(`istening at port ${PORT} `);
