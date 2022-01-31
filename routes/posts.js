@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
-
+const User = require('../models/User');
 // /api/posts
 
-//create a post
+//create-a-post-------------------------------------------------------------
 
 router.post('/' , async (req,res)=>{
     try{
@@ -15,7 +15,7 @@ router.post('/' , async (req,res)=>{
     }
 })
 
-//update a post
+//update-a-post-------------------------------------------------------------
 
 router.put('/:id', async (req,res)=>{
     try {
@@ -31,7 +31,7 @@ router.put('/:id', async (req,res)=>{
     }
 })
 
-//delete a post
+//delete-a-post-------------------------------------------------------------
 
 router.delete('/:id' ,  async (req , res)=>{
     try {
@@ -48,9 +48,39 @@ router.delete('/:id' ,  async (req , res)=>{
     }
 })
 
-//like a post
-//get a post
-//get timeline posts
+//like-dislike-a-post-------------------------------------------------------
+
+router.put("/:id/likes" , async(req , res)=>{
+    try {
+        const post = await Post.findById(req.params.id)
+
+        if(!post.likes.includes(req.body.userId)){
+            await post.updateOne({$push : {likes : req.body.userId}})
+            res.status(200).json("liked the post")
+        }else{
+            await post.updateOne({$pull : { likes : req.body.userId }})
+            res.status(200).json("unliked the post")
+        }
+
+    } catch (error) {
+        res.status(200).json(" the post" , error)
+    }
+    
+})
+
+//get-a-post----------------------------------------------------------------
+
+router.get('/:id', async(req , res)=>{
+    try {
+        const post = await Post.findById(req.params.id);
+        const { createdAt , updatedAt, ...restElements } = post._doc;
+        res.status(200).json(restElements)
+    } catch (error) {
+        res.status(500).json("error");
+    }
+})
+
+//get-timeline-posts--------------------------------------------------------
 
 
 module.exports = router;
