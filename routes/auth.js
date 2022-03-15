@@ -2,8 +2,11 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const {generateAccessToken, generateRefreshToken, verify} = require('../JWT/jwt')
+const jwt = require('jsonwebtoken');
 
 // /api/auth/
+
 
 // REGISTER USER ROUTE ---------------------------------------------------------------------------------------------------------------------
 router.post("/register", async (req, res) => {
@@ -20,16 +23,16 @@ router.post("/register", async (req, res) => {
       email: req.body.email,
       password: encryptPassword,
     });
-    console.log("user :", user);
+
     res.status(200).json({
-      status: "ok",
-      message: "date saved in database",
+      status: "successful",
+      message: "user created successfully",
     });
   } catch (err) {
     console.log(err);
     res.status(404).json({
       status: "error",
-      error: "data failed to saved in database",
+      message: "user not created",
     });
   }
 });
@@ -46,29 +49,104 @@ router.post("/login", async (req, res) => {
         user.password
       );
       if (matchPassword) {
+        const accessToken = generateAccessToken(user);
+        const refreshToken = generateRefreshToken(user);
+        const newUser = {...user._doc, accessToken, refreshToken};
+        await user.updateOne({
+          refreshToken,
+        })
         res.status(200).json({
-          status: "ok",
-          message: "password matched",
+          status : "successfull",
+          ...newUser
         });
       } else {
-        res.status(404).json({
+        res.status(403).json({
           status: "error",
-          error: "password incorrect",
+          message: "password is incorrect",
         });
       }
     } else {
       res.status(404).json({
         status: "error",
-        error: "user doesnot exist",
+        message: "email is incorrect",
       });
     }
   } catch (err) {
     console.log(err);
-    req.status(404).json({
-      status: 404,
-      error: "unwanted error",
+    res.status(500).json({
+      status: "error",
+      error: "Internal Server Error",
     });
   }
+});
+
+
+// LOGOUT USER ROUTE ---------------------------------------------------------------------------------------------------------------------
+
+router.get('/logout',verify, async (req, res)=>{
+  const id = req.user.id
+  try {
+    const user = await User.findById(id);
+    await user.updateOne({
+      refreshToken: ""
+    })
+    //send blank user to front-end
+    res.status(200).json({});
+  } catch (error) {
+    res.status(404).json({
+      status:404,
+      message:"Can't able to log out"
+    })
+  }
+})
+
+
+// REFRESH USER TOKEN ---------------------------------------------------------------------------------------------------------------------
+
+router.post("/refresh", async(req, res) => {
+
+  //take refresh token from user through body
+  const refreshToken = req.body.token;
+
+  //sent error no token || token not valid
+  if (!refreshToken) {
+    return res.status(401).json({
+      status: "error",
+      message:"you are not authenticated"});
+  }   
+    try {
+      const userDB = await User.findOne({refreshToken})
+      if (!userDB) {
+            return res.status(403).json({
+              status :"error",
+              message :"refresh token not valid"});
+          }else{
+              jwt.verify(refreshToken, "refreshSecrectkey", async(err, user) => {
+              if(err){
+                res.status(500).json({
+                  status :"error",
+                  message :"refresh token not valid"})
+              }
+              //generating new access token
+              const newAccessToken = generateAccessToken(userDB);
+              const newRefreshToken = generateRefreshToken(userDB);
+              
+              //updating the refresh token of the user
+              await userDB.updateOne({
+                refreshToken : newRefreshToken
+              })
+
+              //sending new access token and refresh token
+              const newUser = {...userDB._doc, accessToken : newAccessToken, refreshToken : newRefreshToken};
+              res.status(200).json(newUser);
+            });
+        }
+    } catch (error) {
+      res.status(500).json({
+        status:"error",
+        message:"Internal server error"
+      });
+    }
 });
 
 module.exports = router;
