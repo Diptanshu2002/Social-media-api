@@ -12,10 +12,15 @@ const PostSchema = new mongoose.Schema(
       },
       img :{
           type : String,
+          max : 500
       },
       likes :{
         type : Array,
         default : []
+      },
+      comments : {
+        type : Object,
+        default : {}
       }
   },  
   {
