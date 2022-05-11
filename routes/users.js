@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require("bcrypt");
 const router = express.Router();
 const User = require('../models/User');
-const { Router } = require("express");
+
 const { verify } = require('../JWT/jwt')
 
 // /api/users/
@@ -113,16 +113,18 @@ router.put("/:id/unfollow", async (req,res)=>{
     }
 })
 
+//search route ------
 router.get('/search', async(req, res)=>{
     const query = req.query.q;
     console.log(query);
     try {
-        const queryResponse = await User.find({$email : {$search: `${query}`}})
+        const queryResponse = await User.fuzzySearch();
+        // const queryResponse = await User.find({$username : {$search: `${query}`}})
         // const queryResponse = await User.find({username : {$regex: /ribhu/}})
         
         res.json(queryResponse);
     } catch (error) {
-        res.status(404).json('error')   
+        res.status(404).json(error)   
     }
 })
 

@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const mongooseFuzzySearching = require( 'mongoose-fuzzy-searching')
+
 
 const UserSchema = new mongoose.Schema(
   {
@@ -67,5 +69,6 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+UserSchema.plugin(mongooseFuzzySearching, { fields: ['username', 'email'] });
 const UserModal = mongoose.model("User", UserSchema);
 module.exports = UserModal;
